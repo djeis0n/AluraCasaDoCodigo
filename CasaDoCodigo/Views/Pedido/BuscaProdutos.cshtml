@@ -1,0 +1,87 @@
+﻿@{
+	ViewData["Title"] = "BuscaProdutos";
+}
+
+@model BuscaProdutoViewModel;
+
+<h3>Busca produtos</h3>
+
+<form asp-action="BuscaProdutos" method="post">
+    <input id="queryBuscaProdutos"
+           asp-for="@Model.Pesquisa"
+           class="form-control col-sm-4" 
+           placeholder="Categoria ou Produto" />
+
+    <button class="btn btn-primary" type="submit">
+        <i class="glyphicon glyphicon-search"></i>
+    </button>
+</form>
+
+@if (Model.Produtos.Count() == 0)
+{
+    <h3>Nenhum produto encontrado</h3>
+}
+
+@{
+    var categorias = Model.Produtos.Select(c => c.Categoria).Distinct().ToList();
+}
+
+@foreach (var categoria in categorias)
+{
+<h3>@(categoria.Nome)</h3>
+<div id="@(categoria.Id)my-carousel" class="carousel slide" data-ride="carousel">
+    <!-- Wrapper for slides -->
+    <div class="carousel-inner" role="listbox">
+        @{
+        const int TAMANHO_PAGINA = 4;
+
+        var produtos = Model.Produtos.Where(c => c.Categoria.Id == categoria.Id);
+
+        int paginas = (int)Math.Ceiling((double)produtos.Count() / TAMANHO_PAGINA);
+        }
+
+        @for (int pagina = 0; pagina < paginas; pagina++)
+        {
+
+        <div class="item @(pagina == 0 ? " active" : "" )">
+            <div class="row">
+                @{
+                var produtosDaPagina = produtos.Skip(pagina * TAMANHO_PAGINA).Take(TAMANHO_PAGINA);
+                }
+
+                @foreach (var produto in produtosDaPagina)
+                {
+
+                <div class="col-md-3 col-sm-3 col-lg-3">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <img class="img-produto-carrossel" src="/images/produtos/large_@(produto.Codigo).jpg" />
+                        </div>
+                        <div class="panel-footer produto-footer">
+                            <div class="produto-nome">@produto.Nome</div>
+                            <div><h4><strong>R$ @produto.Preco</strong></h4></div>
+                            <div class="text-center">
+                                <a asp-action="carrinho"
+                                   asp-route-codigo="@produto.Codigo"
+                                   class="btn btn-success">Adicionar</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+        }
+    </div>
+    <!-- Controls -->
+    <a class="left carousel-control" href="#@(categoria.Id)my-carousel" role="button" data-slide="prev">
+        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="right carousel-control" href="#@(categoria.Id)my-carousel" role="button" data-slide="next">
+        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+</div>
+}
